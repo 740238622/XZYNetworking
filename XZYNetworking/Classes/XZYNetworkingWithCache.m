@@ -6,19 +6,20 @@
 //  Copyright © 2017年 徐自由. All rights reserved.
 //
 
+#define URLStr @"www.baidu.com/" //接口前缀
+
 #import "XZYNetworkingWithCache.h"
 
 NSString * const HttpCache = @"HttpRequestCache";
 #define DYLog(...) NSLog(__VA_ARGS__)  //如果不需要打印数据, 注释掉NSLog
 
-
-// 请求方式
+//请求方式
 typedef NS_ENUM(NSInteger, RequestType) {
-    RequestTypeGet,
-    RequestTypePost,
-    RequestTypeUpLoad,//单个上传
-    RequestTypeMultiUpload,//多个上传
-    RequestTypeDownload
+    RequestTypeGet,//Get请求
+    RequestTypePost,//Post请求
+    RequestTypeUpLoad,//单张图片上传
+    RequestTypeMultiUpload,//多张图片上传
+    RequestTypeDownload//下载
 };
 
 @implementation XZYNetworkingWithCache
@@ -26,9 +27,17 @@ typedef NS_ENUM(NSInteger, RequestType) {
     __weak XZYNetworkingWithCache *weakSelf;
 }
 
+/**
+ 初始化
+ 
+ @param requestDelegate 代理
+ @param bindTag 接口tag
+ @param NeedToken 是否判断登录
+ @return return value description
+ */
 - (instancetype)initWithDelegate:(id)requestDelegate bindTag:(NSString *)bindTag NeedToken:(NSInteger)NeedToken
 {
-    if (self =[super init]) {
+    if (self = [super init]) {
         self.requestDelegate = requestDelegate;
         self.bindTag = bindTag;
         self.needToken = NeedToken;
@@ -38,12 +47,23 @@ typedef NS_ENUM(NSInteger, RequestType) {
 }
 
 #pragma mark - Get方法(默认方法)
-//不带缓存
+/**
+ Get不带缓存请求
+ 
+ @param api 接口名
+ @param params 接口参数字典
+ */
 - (void)httpGetRequest:(NSString *)api params:(NSMutableDictionary *)params
 {
     [self httpRequestWithUrlStr:api params:params requestType:RequestTypeGet isCache:NO cacheKey:nil imageKey:nil withData:nil withDataArray:nil];
 }
 
+/**
+ Get带缓存请求
+ 
+ @param api 接口名
+ @param params 接口参数字典
+ */
 - (void)httpGetCacheRequest:(NSString *)api params:(NSMutableDictionary *)params
 {
     [self httpRequestWithUrlStr:api params:params requestType:RequestTypeGet isCache:YES cacheKey:api imageKey:nil withData:nil withDataArray:nil];
@@ -51,25 +71,50 @@ typedef NS_ENUM(NSInteger, RequestType) {
 }
 
 #pragma mark - Post方法
-//不带缓存
+/**
+ Post不带缓存请求
+ 
+ @param api 接口名
+ @param params 接口参数字典
+ */
 - (void)httpPostRequest:(NSString *)api params:(NSMutableDictionary *)params
 {
     [self httpRequestWithUrlStr:api params:params requestType:RequestTypePost isCache:NO cacheKey:nil imageKey:nil withData:nil withDataArray:nil];
 }
 
+/**
+ Post带缓存请求
+ 
+ @param api 接口名
+ @param params 接口参数字典
+ */
 - (void)httpPostCacheRequest:(NSString *)api params:(NSMutableDictionary *)params
 {
     [self httpRequestWithUrlStr:api params:params requestType:RequestTypePost isCache:YES cacheKey:api imageKey:nil withData:nil withDataArray:nil];
 }
 
 #pragma mark - 上传文件方法
-//上传单张图片
+/**
+ 上传单张图片
+ 
+ @param api 接口名
+ @param params 接口参数字典
+ @param name 图片名
+ @param data 二进制图片
+ */
 - (void)upLoadDataWithUrlStr:(NSString *)api params:(NSMutableDictionary *)params imageKey:(NSString *)name withData:(NSData *)data
 {
     [self httpRequestWithUrlStr:api params:params requestType:RequestTypeUpLoad isCache:NO cacheKey:api imageKey:name withData:data withDataArray:nil];
 
 }
-//上传多张图片
+
+/**
+ 上传多张图片
+ 
+ @param api 接口名
+ @param params 接口参数字典
+ @param dataArray 数组存放二进制图片
+ */
 - (void)upLoadDataWithUrlStr:(NSString *)api params:(NSMutableDictionary *)params  withDataArray:(NSArray *)dataArray
 {
     [self httpRequestWithUrlStr:api params:params requestType:RequestTypeMultiUpload isCache:NO cacheKey:api imageKey:nil withData:nil withDataArray:dataArray];
@@ -90,8 +135,7 @@ typedef NS_ENUM(NSInteger, RequestType) {
  */
 - (void)httpRequestWithUrlStr:(NSString *)api params:(NSMutableDictionary *)params requestType:(RequestType)requestType isCache:(BOOL)isCache cacheKey:(NSString *)cacheKey imageKey:(NSString *)name withData:(NSData *)data withDataArray:(NSArray *)dataArray
 {
-//    NSString *url = [NSString stringWithFormat:@"%@%@",self.urlString, api];
-    NSString *url = api;
+    NSString *url = [NSString stringWithFormat:@"%@%@", URLStr, api];
     
     url = [url stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
     
@@ -99,19 +143,19 @@ typedef NS_ENUM(NSInteger, RequestType) {
         params = [NSMutableDictionary dictionary];
     }
     
-    NSString *allUrl=[self urlDictToStringWithUrlStr:url WithDict:params];
+    NSString *allUrl = [self urlDictToStringWithUrlStr:url WithDict:params];
     DYLog(@"\n\n 网址 \n\n      %@    \n\n 网址 \n\n",allUrl);
     
     //设置YYCache属性
     YYCache *cache = [[YYCache alloc] initWithName:HttpCache];
-    cache.memoryCache.shouldRemoveAllObjectsOnMemoryWarning = YES;
-    cache.memoryCache.shouldRemoveAllObjectsWhenEnteringBackground = YES;
+    cache.memoryCache.shouldRemoveAllObjectsOnMemoryWarning = YES;//当接收到来自系统的内存警告时，是否要清除所有缓存，默认是 YES。建议使用默认。
+    cache.memoryCache.shouldRemoveAllObjectsWhenEnteringBackground = YES;//当进入后台的时候是否要清除所有缓存，默认是 YES。建议使用默认。
     
     id cacheData;
     //此处要修改为,服务端不要求重新拉取数据时执行;注意当缓存没取到时,重新访问接口
     if (isCache) {//根据网址从Cache中取数据
         cacheData = [cache objectForKey:cacheKey];
-        if(cacheData!=nil)
+        if(cacheData != nil)
         {//将数据统一处理
             [self returnDataWithRequestData:cacheData];
         }
@@ -123,18 +167,18 @@ typedef NS_ENUM(NSInteger, RequestType) {
         DYLog(@"\n\n----%@------\n\n",@"没有网络");
         //断网后,根据网址从Cache中取数据进行显示
         id cacheData = [cache objectForKey:cacheKey];
-        if(cacheData!=nil)
+        if(cacheData != nil)
         {//将数据统一处理
             [self returnDataWithRequestData:cacheData];
         }
         return;
     }
     
-    AFHTTPSessionManager *session=[AFHTTPSessionManager manager];
-    session.responseSerializer.acceptableContentTypes=[NSSet setWithObjects:@"application/json",@"text/json",@"text/javascript",@"text/html", nil];
-    //超时时间
-    session.requestSerializer.timeoutInterval=30;
-    session.responseSerializer=[AFHTTPResponseSerializer serializer];
+    AFHTTPSessionManager *session = [AFHTTPSessionManager manager];
+    session.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json",@"text/json",@"text/javascript",@"text/html", nil];
+    //超时时间 30s
+    session.requestSerializer.timeoutInterval = 30;
+    session.responseSerializer = [AFHTTPResponseSerializer serializer];
     
     if (requestType == RequestTypeGet) {//Get请求
         [session GET:url parameters:params progress:^(NSProgress * _Nonnull downloadProgress) {
@@ -164,6 +208,8 @@ typedef NS_ENUM(NSInteger, RequestType) {
             
         } progress:^(NSProgress * _Nonnull uploadProgress) {
             //(float)uploadProgress.completedUnitCount/(float)uploadProgress.totalUnitCount
+//            打印进度
+//            NSLog(@"%lf", 1.0 * (float)uploadProgress.completedUnitCount/(float)uploadProgress.totalUnitCount);
         } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             
             [weakSelf dealWithResponseObject:responseObject cacheUrl:allUrl cacheData:cacheData isCache:isCache cache:nil cacheKey:nil];
@@ -174,9 +220,7 @@ typedef NS_ENUM(NSInteger, RequestType) {
     } else if (requestType == RequestTypeMultiUpload) {//上传多张图片
         [session POST:url parameters:params constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
             
-//            formData = [self dataWith:formData dataArray:dataArray];
-            for (NSInteger i = 0; i < dataArray.count; i++)
-            {
+            for (NSInteger i = 0; i < dataArray.count; i++) {
                 NSData *imageData = [dataArray objectAtIndex:i];
                 //name和服务端约定好
                 [formData appendPartWithFileData:imageData name:[NSString stringWithFormat:@"pic%zi", i] fileName:[NSString stringWithFormat:@"%zi.jpg", i] mimeType:@"image/jpeg"];
@@ -195,23 +239,21 @@ typedef NS_ENUM(NSInteger, RequestType) {
     
 }
 
-//- (id<AFMultipartFormData>)dataWith:(id<AFMultipartFormData>)formDate dataArray:(NSArray *)dataArray
-//{
-//    for (NSInteger i = 0; i < dataArray.count; i++)
-//    {
-//        NSData *imageData = [dataArray objectAtIndex:i];
-//        //name和服务端约定好
-//        [formDate appendPartWithFileData:imageData name:[NSString stringWithFormat:@"pic%zi", i] fileName:[NSString stringWithFormat:@"%zi.jpg", i] mimeType:@"image/jpeg"];
-//    }
-//
-//    return formDate;
-//}
-
 #pragma mark 统一处理请求到的数据
--(void)dealWithResponseObject:(NSData *)responseData cacheUrl:(NSString *)cacheUrl cacheData:(id)cacheData isCache:(BOOL)isCache cache:(YYCache*)cache cacheKey:(NSString *)cacheKey  //cacheData暂不理会
+/**
+ 数据处理
+
+ @param responseData 接口返回Data
+ @param cacheUrl 拼接完的URL
+ @param cacheData 缓存data
+ @param isCache 是否缓存
+ @param cache cache
+ @param cacheKey cacheKey
+ */
+- (void)dealWithResponseObject:(NSData *)responseData cacheUrl:(NSString *)cacheUrl cacheData:(id)cacheData isCache:(BOOL)isCache cache:(YYCache *)cache cacheKey:(NSString *)cacheKey  //cacheData暂不理会
 {
     dispatch_async(dispatch_get_main_queue(), ^{
-        [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;// 关闭网络指示器
+        [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;//关闭网络指示器（信号那菊花圈）
     });
     
     NSString * dataString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
@@ -232,29 +274,29 @@ typedef NS_ENUM(NSInteger, RequestType) {
     //    [self returnDataWithRequestData:requestData];
 }
 
-#pragma mark - 根据返回的数据进行统一的格式处理-requestData 网络或者是缓存的数据-
+#pragma mark - 根据返回的数据进行统一的格式处理-requestData
 - (void)returnDataWithRequestData:(NSData *)requestData
 {
     id myResult = [NSJSONSerialization JSONObjectWithData:requestData options:NSJSONReadingMutableContainers error:nil];
 
     //判断是否为字典
     if ([myResult isKindOfClass:[NSDictionary  class]]) {
-        NSDictionary *response = (NSDictionary *)myResult;
-    
+//        NSDictionary *response = (NSDictionary *)myResult;
+        
         //根据返回的接口内容来变
-        NSInteger flag = [[response objectForKey:@"flag"] integerValue];
-
-        if (flag == 0) {
-            NSLog(@"返回Json\n%@\n",response);
-            //        把data层剥掉
-            NSDictionary *dict=[response objectForKey:@"result"];
-
-            [self showSuccess:dict];
-        }
-        if (flag == 1) {
-            [self showError:[response objectForKey:@"result"]];
-            return;
-        }
+//        NSInteger flag = [[response objectForKey:@"flag"] integerValue];
+//
+//        if (flag == 0) {
+//            NSLog(@"返回Json\n%@\n",response);
+//            //        把data层剥掉
+//            NSDictionary *dict = [response objectForKey:@"result"];
+//
+//            [self showSuccess:dict];
+//        }
+//        if (flag == 1) {
+//            [self showError:[response objectForKey:@"result"]];
+//            return;
+//        }
     }
 }
 
@@ -292,7 +334,6 @@ typedef NS_ENUM(NSInteger, RequestType) {
     NSString *pathStr = [NSString stringWithFormat:@"%@%@",urlString,queryString];
     
     return pathStr;
-    
 }
 #pragma mark -- 处理json格式的字符串中的换行符、回车符
 - (NSString *)deleteSpecialCodeWithStr:(NSString *)str {
@@ -328,7 +369,6 @@ typedef NS_ENUM(NSInteger, RequestType) {
     BOOL isNetworkEnable  = (isReachable && !needsConnection) ? YES : NO;
     dispatch_async(dispatch_get_main_queue(), ^{
         [UIApplication sharedApplication].networkActivityIndicatorVisible = isNetworkEnable;/*  网络指示器的状态： 有网络 ： 开  没有网络： 关  */
-        
     });
     return isNetworkEnable;
 }
@@ -336,13 +376,14 @@ typedef NS_ENUM(NSInteger, RequestType) {
 #pragma mark - 返回数据的调度显示
 - (void)showSuccess:(id)response
 {
-    if(!self.requestDelegate) return;
-    
+    if (!self.requestDelegate) {
+        return;
+    }
+//selector中使用了不存在的方法名（在使用反射机制通过类名创建类对象的时候会需要的）
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored"-Wundeclared-selector"
     
-    if ([self.requestDelegate respondsToSelector:@selector(Sucess:tag:)])
-    {
+    if ([self.requestDelegate respondsToSelector:@selector(Sucess:tag:)]) {
         [self.requestDelegate performSelector:@selector(Sucess:tag:) withObject:response withObject:self.bindTag];
         return;
     }
@@ -352,12 +393,14 @@ typedef NS_ENUM(NSInteger, RequestType) {
 
 - (void)showError:(NSString *)error
 {
-    if(!self.requestDelegate) return;
+    if (!self.requestDelegate) {
+        return;
+    }
+    
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored"-Wundeclared-selector"
     
-    if ([self.requestDelegate respondsToSelector:@selector(Failed:tag:)])
-    {
+    if ([self.requestDelegate respondsToSelector:@selector(Failed:tag:)]) {
         [self.requestDelegate performSelector:@selector(Failed:tag:) withObject:error withObject:self.bindTag];
         return;
     }
@@ -367,7 +410,7 @@ typedef NS_ENUM(NSInteger, RequestType) {
 
 - (void)dealloc
 {
-    self.requestDelegate=nil;
+    self.requestDelegate = nil;
 }
 
 
