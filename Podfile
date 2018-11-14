@@ -5,5 +5,6 @@ target 'XZYNetworking' do
   
   pod 'AFNetworking'
   pod 'YYCache'
+  pod 'MJRefresh'
 
 end

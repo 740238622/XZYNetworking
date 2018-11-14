@@ -23,10 +23,11 @@
 
 @interface XZYNetworkingWithCache : NSObject
 
-@property (nonatomic,strong) id requestDelegate;
-@property (nonatomic,copy) NSString *bindTag;
-@property (nonatomic,assign) NSInteger needToken;
-@property (nonatomic,assign) NSInteger isLoginFlag;//1时如果token可传为空就不跳出登陆界面
+@property (nonatomic, strong)       id requestDelegate;
+@property (nonatomic, copy)         NSString *bindTag;
+@property (nonatomic, assign)       NSInteger needToken;
+@property (nonatomic, assign)       NSInteger isLoginFlag;//1时如果token可传为空就不跳出登陆界面
+@property (nonatomic, assign)       BOOL isCache;
 
 /**
  初始化
@@ -40,36 +41,21 @@
 
 #pragma mark - Get方法(默认方法)
 /**
- Get不带缓存请求
+ Get请求
 
  @param api 接口名
  @param params 接口参数字典
  */
 - (void)httpGetRequest:(NSString *)api params:(NSMutableDictionary *)params;
 
-/**
- Get带缓存请求
- 
- @param api 接口名
- @param params 接口参数字典
- */
-- (void)httpGetCacheRequest:(NSString *)api params:(NSMutableDictionary *)params;
-
 #pragma mark - Post方法
 /**
- Post不带缓存请求
+ Post请求
  
  @param api 接口名
  @param params 接口参数字典
  */
 - (void)httpPostRequest:(NSString *)api params:(NSMutableDictionary *)params;
-/**
- Post带缓存请求
- 
- @param api 接口名
- @param params 接口参数字典
- */
-- (void)httpPostCacheRequest:(NSString *)api params:(NSMutableDictionary *)params;
 
 #pragma mark - 上传文件方法
 /**

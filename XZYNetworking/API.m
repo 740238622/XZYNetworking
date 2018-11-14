@@ -10,6 +10,7 @@
 
 #define needToken httpRequest.needToken
 #define isLoginFlag httpRequest.isLoginFlag
+#define isCache httpRequest.isCache
 
 @implementation API
 
@@ -27,19 +28,21 @@
 {
     if (self=[super init]) {
         httpRequest = [[XZYNetworkingWithCache alloc] initWithDelegate:delegate bindTag:tag NeedToken:NeedToken];
+        _cache = NO;
     }
     return self;
 }
-#pragma mark - 公共模块
-- (void)getInfo:(NSString *)one two:(NSString *)two
+
+- (void)setCache:(BOOL)cache
 {
-    needToken = 0;
-    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
-    [params setObject:one forKey:@"one"];
-    [params setObject:two forKey:@"two"];
-    [httpRequest httpPostRequest:@"http://www.baidu.com" params:params];
+    isCache = cache;
 }
 
+
+- (void)textApi:(NSString *)urlStr params:(id)params{
+    
+    [httpRequest httpPostRequest:urlStr params:params];
+}
 
 
 @end

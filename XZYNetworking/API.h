@@ -11,7 +11,14 @@
 
 @interface API : NSObject
 
-@property (nonatomic,strong)  XZYNetworkingWithCache *httpRequest;
+@property (nonatomic, strong)  XZYNetworkingWithCache *httpRequest;
+
+
+/**
+ 是否需要缓存 默认为NO;
+ */
+@property (nonatomic, assign)  BOOL cache;
+
 
 #pragma mark - init方法
 //无需token
@@ -20,6 +27,7 @@
 - (instancetype)init:(id)delegate tag:(NSString *)tag NeedToken:(NSInteger)NeedToken;
 
 //测试api
-- (void)getInfo:(NSString *)one two:(NSString *)two;
+- (void)textApi:(NSString *)urlStr params:(id)params;
+
 
 @end
