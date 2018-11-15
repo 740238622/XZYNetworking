@@ -11,6 +11,7 @@
 #define needToken httpRequest.needToken
 #define isLoginFlag httpRequest.isLoginFlag
 #define isCache httpRequest.isCache
+#define isShowCache httpRequest.isShowCache
 
 @implementation API
 
@@ -36,6 +37,11 @@
 - (void)setCache:(BOOL)cache
 {
     isCache = cache;
+}
+
+- (void)setShowCache:(BOOL)showCache
+{
+    isShowCache = showCache;
 }
 
 

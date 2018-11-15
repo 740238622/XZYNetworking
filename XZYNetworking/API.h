@@ -19,6 +19,10 @@
  */
 @property (nonatomic, assign)  BOOL cache;
 
+/**
+ 是否需要显示缓存 默认NO;
+ */
+@property (nonatomic, assign)  BOOL showCache;
 
 #pragma mark - init方法
 //无需token

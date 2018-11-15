@@ -28,10 +28,11 @@
 @property (nonatomic, assign)       NSInteger needToken;
 @property (nonatomic, assign)       NSInteger isLoginFlag;//1时如果token可传为空就不跳出登陆界面
 @property (nonatomic, assign)       BOOL isCache;
+@property (nonatomic, assign)       BOOL isShowCache;
 
 /**
  初始化
-
+ 
  @param requestDelegate 代理
  @param bindTag 接口tag
  @param NeedToken 是否判断登录
@@ -42,7 +43,7 @@
 #pragma mark - Get方法(默认方法)
 /**
  Get请求
-
+ 
  @param api 接口名
  @param params 接口参数字典
  */
@@ -60,7 +61,7 @@
 #pragma mark - 上传文件方法
 /**
  上传单张图片
-
+ 
  @param api 接口名
  @param params 接口参数字典
  @param name 图片名
@@ -70,7 +71,7 @@
 
 /**
  上传多张图片
-
+ 
  @param api 接口名
  @param params 接口参数字典
  @param dataArray 数组存放二进制图片

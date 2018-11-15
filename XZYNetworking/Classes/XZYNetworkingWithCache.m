@@ -44,7 +44,7 @@ typedef NS_ENUM(NSInteger, RequestType) {
 
 #pragma mark - Get方法(默认方法)
 /**
- Get不带缓存请求
+ Get请求
  
  @param api 接口名
  @param params 接口参数字典
@@ -56,7 +56,7 @@ typedef NS_ENUM(NSInteger, RequestType) {
 
 #pragma mark - Post方法
 /**
- Post不带缓存请求
+ Post请求
  
  @param api 接口名
  @param params 接口参数字典
@@ -78,7 +78,7 @@ typedef NS_ENUM(NSInteger, RequestType) {
 - (void)upLoadDataWithUrlStr:(NSString *)api params:(NSMutableDictionary *)params imageKey:(NSString *)name withData:(NSData *)data
 {
     [self httpRequestWithUrlStr:api params:params requestType:RequestTypeUpLoad cacheKey:api imageKey:name withData:data withDataArray:nil];
-
+    
 }
 
 /**
@@ -96,7 +96,7 @@ typedef NS_ENUM(NSInteger, RequestType) {
 
 #pragma mark - 网络请求统一处理
 /**
-
+ 
  @param api 后台的接口名
  @param params 参数dict
  @param requestType 请求类型
@@ -128,12 +128,6 @@ typedef NS_ENUM(NSInteger, RequestType) {
     //此处要修改为,服务端不要求重新拉取数据时执行;注意当缓存没取到时,重新访问接口
     if (_isCache) {//根据网址从Cache中取数据
         cacheData = [cache objectForKey:cacheKey];
-        
-        //当前只对无网络的情况下显示缓存
-//        if(cacheData != nil)
-//        {//将数据统一处理
-//            [self returnDataWithRequestData:cacheData];
-//        }
     }
     
     //进行网络检查
@@ -142,8 +136,7 @@ typedef NS_ENUM(NSInteger, RequestType) {
         DYLog(@"\n\n----%@------\n\n",@"没有网络");
         //断网后,根据网址从Cache中取数据进行显示
         id cacheData = [cache objectForKey:cacheKey];
-        if(cacheData != nil)
-        {//将数据统一处理
+        if(cacheData != nil && _isShowCache == YES) {//显示缓存
             [self returnDataWithRequestData:cacheData];
         }
         return;
@@ -169,7 +162,7 @@ typedef NS_ENUM(NSInteger, RequestType) {
         [session POST:url parameters:params progress:^(NSProgress * _Nonnull downloadProgress) {
             
         } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-
+            
             [self dealWithResponseObject:responseObject cacheUrl:allUrl cacheData:cacheData cache:cache cacheKey:cacheKey];
             
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -183,8 +176,8 @@ typedef NS_ENUM(NSInteger, RequestType) {
             
         } progress:^(NSProgress * _Nonnull uploadProgress) {
             //(float)uploadProgress.completedUnitCount/(float)uploadProgress.totalUnitCount
-//            打印进度
-//            NSLog(@"%lf", 1.0 * (float)uploadProgress.completedUnitCount/(float)uploadProgress.totalUnitCount);
+            //            打印进度
+            //            NSLog(@"%lf", 1.0 * (float)uploadProgress.completedUnitCount/(float)uploadProgress.totalUnitCount);
         } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             
             [self dealWithResponseObject:responseObject cacheUrl:allUrl cacheData:cacheData cache:nil cacheKey:nil];
@@ -217,7 +210,7 @@ typedef NS_ENUM(NSInteger, RequestType) {
 #pragma mark 统一处理请求到的数据
 /**
  数据处理
-
+ 
  @param responseData 接口返回Data
  @param cacheUrl 拼接完的URL
  @param cacheData 缓存data
@@ -239,10 +232,10 @@ typedef NS_ENUM(NSInteger, RequestType) {
         [cache setObject:requestData forKey:cacheKey];
     }
     
-//    if (!_isCache || ![cacheData isEqual:requestData]) {//如果不缓存 或 数据不相同,就把网络返回的数据显示
-//
-//        [self returnDataWithRequestData:requestData];
-//    }
+    //    if (!_isCache || ![cacheData isEqual:requestData]) {//如果不缓存 或 数据不相同,就把网络返回的数据显示
+    //
+    //        [self returnDataWithRequestData:requestData];
+    //    }
     
     //不管缓不缓存都要显示数据
     [self returnDataWithRequestData:requestData];
@@ -252,19 +245,19 @@ typedef NS_ENUM(NSInteger, RequestType) {
 - (void)returnDataWithRequestData:(NSData *)requestData
 {
     id myResult = [NSJSONSerialization JSONObjectWithData:requestData options:NSJSONReadingMutableContainers error:nil];
-
+    
     //判断是否为字典
     if ([myResult isKindOfClass:[NSDictionary  class]]) {
         NSDictionary *response = (NSDictionary *)myResult;
         
         //根据返回的接口内容来变
         NSInteger code = [[response objectForKey:@"Code"] integerValue];
-
+        
         if (code == 0) {
             NSLog(@"返回Json\n%@\n",response);
             //        把data层剥掉
             NSDictionary *dict = [response objectForKey:@"Data"];
-
+            
             [self showSuccess:dict];
         }
         if (code == 1) {
@@ -353,7 +346,7 @@ typedef NS_ENUM(NSInteger, RequestType) {
     if (!self.requestDelegate) {
         return;
     }
-//selector中使用了不存在的方法名（在使用反射机制通过类名创建类对象的时候会需要的）
+    //selector中使用了不存在的方法名（在使用反射机制通过类名创建类对象的时候会需要的）
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored"-Wundeclared-selector"
     
